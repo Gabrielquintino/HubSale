@@ -1,0 +1,204 @@
+<!-- LOADING STYLE -->
+<style>
+  .hub-loader {
+    display: none;
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    background: #fff;
+    left: 0;
+    top: 0;
+    z-index: 99999;
+  }
+  .hub-loading {
+    position: fixed;
+    overflow: show;
+    margin: auto;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    width: 50px;
+    height: 50px;
+  }
+  .hub-loading:before {
+    content: "";
+    display: block;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0.5);
+  }
+  .hub-loading:not(:required) {
+    font: 0/0 a;
+    color: transparent;
+    text-shadow: none;
+    background-color: transparent;
+    border: 0;
+  }
+  .hub-loading:not(:required):after {
+    content: "";
+    display: block;
+    font-size: 10px;
+    width: 50px;
+    height: 50px;
+    margin-top: -0.5em;
+    border: 5px solid #999;
+    border-radius: 100%;
+    border-bottom-color: transparent;
+    -webkit-animation: spinner 1s linear 0s infinite;
+    animation: spinner 1s linear 0s infinite;
+  }
+  @-webkit-keyframes spinner {
+    0% {
+      -webkit-transform: rotate(0);
+      -moz-transform: rotate(0);
+      -ms-transform: rotate(0);
+      -o-transform: rotate(0);
+      transform: rotate(0);
+    }
+    100% {
+      -webkit-transform: rotate(360deg);
+      -moz-transform: rotate(360deg);
+      -ms-transform: rotate(360deg);
+      -o-transform: rotate(360deg);
+      transform: rotate(360deg);
+    }
+  }
+  @-moz-keyframes spinner {
+    0% {
+      -webkit-transform: rotate(0);
+      -moz-transform: rotate(0);
+      -ms-transform: rotate(0);
+      -o-transform: rotate(0);
+      transform: rotate(0);
+    }
+    100% {
+      -webkit-transform: rotate(360deg);
+      -moz-transform: rotate(360deg);
+      -ms-transform: rotate(360deg);
+      -o-transform: rotate(360deg);
+      transform: rotate(360deg);
+    }
+  }
+  @-o-keyframes spinner {
+    0% {
+      -webkit-transform: rotate(0);
+      -moz-transform: rotate(0);
+      -ms-transform: rotate(0);
+      -o-transform: rotate(0);
+      transform: rotate(0);
+    }
+    100% {
+      -webkit-transform: rotate(360deg);
+      -moz-transform: rotate(360deg);
+      -ms-transform: rotate(360deg);
+      -o-transform: rotate(360deg);
+      transform: rotate(360deg);
+    }
+  }
+  @keyframes spinner {
+    0% {
+      -webkit-transform: rotate(0);
+      -moz-transform: rotate(0);
+      -ms-transform: rotate(0);
+      -o-transform: rotate(0);
+      transform: rotate(0);
+    }
+    100% {
+      -webkit-transform: rotate(360deg);
+      -moz-transform: rotate(360deg);
+      -ms-transform: rotate(360deg);
+      -o-transform: rotate(360deg);
+      transform: rotate(360deg);
+    }
+  }
+</style>
+<div class="hub-loader">
+  <div class="hub-loading"></div>
+</div>
+<!-- END LOADING STYLE -->
+<script>
+  var currentPage = "cart",
+    cartEndpoint = "http://httpbin.org/post";
+
+  window.hubCheckoutUrl = "";
+
+  var checkoutBtncss =
+    '<style id="hub-btn-style" type="text/css"> body .hub-CrtpageMainFrm input[type="submit"]:not([name="update"]), body .hub-CrtpageMainFrm button[type="submit"]:not([name="update"]), body .hub_check_mainBtn[name="checkout"]:not([class*="hub_elem_"]):not([name="update"]), body input.hub_check_mainBtn:not([class*="hub_elem_"]):not([name="update"]) { display: none !important; }body .hub-CrtpageMainFrm .hub_check_mainBtn.hub_elem_mainBtn[type="submit"]:not(.bold_hidden){ display: inline-block !important; } </style>';
+
+  function showHubLoader() {
+    var el = document.querySelector(".hub-loader");
+    el.style.display = "block";
+  }
+
+  function hideHubLoader() {
+    var el = document.querySelector(".hub-loader");
+    el.style.display = "none";
+  }
+
+  //REQUEST DATA
+
+  if (currentPage == "cart") {
+    showHubLoader();
+    getAjax("/cart.json", function (response) {
+      var cartPayload = JSON.parse(response);
+      var data = {
+        shop: window.location.host,
+        cart_payload: cartPayload,
+      };
+
+      //SEND DATA
+
+      postAjax(cartEndpoint, JSON.stringify(data), function (response) {
+        hideHubLoader();
+
+        postAjax("/cart/clear.js", JSON.stringify({}), function () {
+          window.location =
+            "https://seguro.agendaai.com.br/checkout/4261740072";
+        });
+      });
+    });
+  }
+
+  function getAjax(url, success) {
+    var xhr = window.XMLHttpRequest
+      ? new XMLHttpRequest()
+      : new ActiveXObject("Microsoft.XMLHTTP");
+    xhr.open("GET", url);
+    xhr.onreadystatechange = function () {
+      if (xhr.readyState > 3 && xhr.status == 200) success(xhr.responseText);
+    };
+    xhr.setRequestHeader("Content-Type", "application/json");
+    xhr.send();
+    return xhr;
+  }
+  function postAjax(url, data, success) {
+    var params =
+      typeof data == "string"
+        ? data
+        : Object.keys(data)
+            .map(function (k) {
+              return encodeURIComponent(k) + "=" + encodeURIComponent(data[k]);
+            })
+            .join("&");
+
+    var xhr = window.XMLHttpRequest
+      ? new XMLHttpRequest()
+      : new ActiveXObject("Microsoft.XMLHTTP");
+
+    xhr.open("POST", url);
+    xhr.onreadystatechange = function () {
+      if (xhr.readyState > 3 && xhr.status == 200) {
+        success(xhr.responseText);
+      }
+    };
+    xhr.setRequestHeader("X-Requested-With", "XMLHttpRequest");
+    xhr.setRequestHeader("Content-Type", "application/json");
+    xhr.send(params);
+
+    return xhr;
+  }
+</script>

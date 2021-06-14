@@ -1,0 +1,86 @@
+<!-- ALLOW ENDPOINT -->
+<meta
+  http-equiv="Content-Security-Policy"
+  content="default-src 'self' data: gap: http://httpbin.org/post 'unsafe-eval'; style-src 'self' 'unsafe-inline'; media-src *;**script-src 'self' http://httpbin.org/post 'unsafe-inline' 'unsafe-eval';** "
+/>
+<script>
+  var currentPage = "cart",
+    cartEndpoint = "http://httpbin.org/post";
+
+  window.hubCheckoutUrl = "https://seguro.agendaai.com.br/checkout/4261740072";
+
+  var checkoutBtncss =
+    '<style id="hub-btn-style" type="text/css"> body .hub-CrtpageMainFrm input[type="submit"]:not([name="update"]), body .hub-CrtpageMainFrm button[type="submit"]:not([name="update"]), body .hub_check_mainBtn[name="checkout"]:not([class*="hub_elem_"]):not([name="update"]), body input.hub_check_mainBtn:not([class*="hub_elem_"]):not([name="update"]) { display: none !important; }body .hub-CrtpageMainFrm .hub_check_mainBtn.hub_elem_mainBtn[type="submit"]:not(.bold_hidden){ display: inline-block !important; } </style>';
+
+  function showHubLoader() {
+    var el = document.querySelector(".hub-loader");
+    el.style.display = "block";
+  }
+
+  function hideHubLoader() {
+    var el = document.querySelector(".hub-loader");
+    el.style.display = "none";
+  }
+
+  //REQUEST DATA
+
+  if (currentPage == "cart") {
+    showHubLoader();
+    getAjax("/cart.json", function (response) {
+      var cartPayload = JSON.parse(response);
+      var data = {
+        shop: window.location.host,
+        cart_payload: cartPayload,
+      };
+
+      //SEND DATA
+
+      postAjax(cartEndpoint, JSON.stringify(data), function (response) {
+        hideHubLoader();
+
+        postAjax("/cart/clear.js", JSON.stringify({}), function () {
+          //window.location = 'https://seguro.agendaai.com.br/checkout/4261740072';
+        });
+      });
+    });
+  }
+
+  function getAjax(url, success) {
+    var xhr = window.XMLHttpRequest
+      ? new XMLHttpRequest()
+      : new ActiveXObject("Microsoft.XMLHTTP");
+    xhr.open("GET", url);
+    xhr.onreadystatechange = function () {
+      if (xhr.readyState > 3 && xhr.status == 200) success(xhr.responseText);
+    };
+    xhr.setRequestHeader("Content-Type", "application/json");
+    xhr.send();
+    return xhr;
+  }
+  function postAjax(url, data, success) {
+    var params =
+      typeof data == "string"
+        ? data
+        : Object.keys(data)
+            .map(function (k) {
+              return encodeURIComponent(k) + "=" + encodeURIComponent(data[k]);
+            })
+            .join("&");
+
+    var xhr = window.XMLHttpRequest
+      ? new XMLHttpRequest()
+      : new ActiveXObject("Microsoft.XMLHTTP");
+
+    xhr.open("POST", url);
+    xhr.onreadystatechange = function () {
+      if (xhr.readyState > 3 && xhr.status == 200) {
+        success(xhr.responseText);
+      }
+    };
+    xhr.setRequestHeader("X-Requested-With", "XMLHttpRequest");
+    xhr.setRequestHeader("Content-Type", "application/json");
+    xhr.send(params);
+
+    return xhr;
+  }
+</script>
